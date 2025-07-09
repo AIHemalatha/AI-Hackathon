@@ -11,3 +11,4 @@ timestamp,source,input,mood,score
 2025-07-08 21:09:48,text,I had cereal for breakfast today,neutral,0.64
 2025-07-08 21:10:38,text,"I feel so alone lately, like nobody cares.",sadness,0.98
 2025-07-08 21:12:27,text,"My partner surprised me with flowers, I feel so loved.",surprise,0.93
+2025-07-09 12:47:48,text,"Wow, I didn’t expect to win that competition",surprise,0.98

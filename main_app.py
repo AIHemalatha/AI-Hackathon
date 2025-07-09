@@ -8,14 +8,12 @@ import av
 from streamlit_webrtc import webrtc_streamer, WebRtcMode
 from tensorflow.keras.models import load_model
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-#from chatbot.mental_chatbot import get_empathetic_reply
 from chatbot.chatbot import get_empathetic_reply
 from emotion_detection.face_live_stream import detect_live_face_emotion
-from voice_stream import predict_voice_emotion_live
-from voice_feedback import speak_response
+from emotion_detection.voice_stream import predict_voice_emotion_live,translate_text
+from emotion_detection.voice_feedback import speak_response
 from utils.logger import log_mood_entry
 from utils.logger import check_sos_trigger
-
 
 st.set_page_config(page_title="AI Mental Health Companion", layout="wide")
 st.title("🧠 AI Mental Health Companion")
@@ -58,8 +56,8 @@ elif option == "Voice Emotion":
         emotion = predict_voice_emotion_live()
         st.markdown(f"**🗣️ Detected Voice Emotion:** `{emotion}`")
 
-        # Response message
-        msg = {
+        # 💬 Step 2: English base message
+        msg_en = {
             "sad": "I'm here for you. Try breathing deeply and know that things will get better.",
             "angry": "It’s okay to feel this way. Let’s take a moment to calm down.",
             "fearful": "You're safe. Try focusing on your breath and relax.",
@@ -67,10 +65,15 @@ elif option == "Voice Emotion":
             "neutral": "Thanks for checking in. How are you feeling now?"
         }.get(emotion, "You're doing great!")
 
-        # 💬 Voice response
-        speak_response(msg, lang=lang_code)
+        # 🔄 Translate to Tamil if needed
+        msg_final = msg_en
+        if lang_code == 'ta':
+            msg_final = translate_text(msg_en, 'ta')
 
-        # 🎥 Activity suggestion
+        # 💬 Speak response
+        speak_response(msg_final, lang=lang_code)
+
+        # 🎥 Suggest calming content for negative emotions
         if emotion in ["sad", "angry", "fearful"]:
             st.video("https://youtu.be/3sCGysVB41k?si=EcXXHG5VJUG2XzdE")
             st.success("Try this calming song 💙")
@@ -103,8 +106,16 @@ elif option == "Mood Journal":
             
             # Plot mood trend
             df['day'] = df['timestamp'].dt.date
-            mood_map = {'negative': -1, 'neutral': 0, 'positive': 1}
-            df['mood_score'] = df['mood'].map(mood_map)
+            mood_map = {
+                'anger': -2,
+                'fear': -1,
+                'sadness': -1,
+                'neutral': 0,
+                'surprise': 0,
+                'joy': 1,
+                'love': 2
+            }
+            df['mood_score'] = df['mood'].map(mood_map).fillna(0)
 
             mood_trend = df.groupby('day')['mood_score'].mean().reset_index()
             st.subheader("📈 Weekly Mood Trend")

@@ -1,11 +1,12 @@
 import streamlit as st
 import torch
-import torchaudio
+#import torchaudio
 import numpy as np
 import librosa
-import tempfile
-from scipy.io.wavfile import write
+#import tempfile
+#from scipy.io.wavfile import write
 import sounddevice as sd
+from deep_translator import GoogleTranslator
 
 
 # Load voice model
@@ -45,3 +46,12 @@ def predict_voice_emotion_live():
         pred = torch.argmax(output, dim=1).item()
 
     return labels[pred]
+
+
+def translate_text(text, target_lang='ta'):
+    try:
+        translated = GoogleTranslator(source='en', target=target_lang).translate(text)
+        return translated
+    except Exception as e:
+        print("Translation error:", e)
+        return text  # fallback to original if translation fails
